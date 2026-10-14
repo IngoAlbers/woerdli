@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wördli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: one centered column, a 5×6 tile grid over a Swiss QWERTZ keyboard; red tiles mark the right letter in the right spot. */
+:root{
+  --bg:#F3F2EF; --ink:#1C1B1A; --muted:#6B6762; --tile:#FFFFFF; --edge:#CFCBC4; --key:#DEDAD3;
+  --hit:#D52B1E; --near:#D99A1E; --miss:#8C8781; --on:#FFFFFF;
+  --font:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151413; --ink:#EEECE8; --muted:#A29D96; --tile:#1F1E1C; --edge:#3D3A37; --key:#4A4642;
+  --hit:#E0392B; --near:#D4961C; --miss:#4A4642; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151413; --ink:#EEECE8; --muted:#A29D96; --tile:#1F1E1C; --edge:#3D3A37; --key:#4A4642;
+  --hit:#E0392B; --near:#D4961C; --miss:#4A4642; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5}
+.wrap{max-width:500px;margin:0 auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px;min-height:100%;box-sizing:border-box}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--edge);padding-bottom:12px}
+.logo{display:flex;gap:3px}
+.logo b{width:28px;height:32px;display:grid;place-items:center;border:2px solid var(--ink);font-weight:700;font-size:1.05rem;text-transform:uppercase}
+.logo b.o{background:var(--hit);border-color:var(--hit);color:var(--on)}
+.meta{font-size:.75rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select{font:inherit;color:var(--ink);background:transparent;border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.82rem;font-weight:600}
+select{appearance:none;background:var(--bg)}
+button:hover,select:hover{background:var(--ink);color:var(--bg)}
+button:focus-visible,select:focus-visible{outline:3px solid var(--near);outline-offset:2px}
+
+.msg{min-height:1.6em;text-align:center;font-weight:600;font-size:.9rem}
+.grid{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;width:min(100%,330px);margin:0 auto}
+.r{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.r.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.t{aspect-ratio:1;max-width:100%;display:grid;place-items:center;border:2px solid var(--edge);background:var(--tile);font-size:1.9rem;font-weight:700;text-transform:uppercase;user-select:none}
+.t.f{border-color:var(--muted)}
+.t.hit,.t.near,.t.miss{color:var(--on);border-color:transparent}
+.t.hit{background:var(--hit)} .t.near{background:var(--near)} .t.miss{background:var(--miss)}
+.t.flip{animation:flip .45s ease both}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@media (prefers-reduced-motion:reduce){.t.flip,.r.shake{animation:none}}
+
+.kb{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.kr{display:flex;gap:4px;justify-content:center}
+.k{flex:1;min-width:0;height:52px;border:0;border-radius:5px;background:var(--key);color:var(--ink);font-size:1rem;font-weight:700;text-transform:uppercase;padding:0}
+.k:hover{background:var(--key);color:var(--ink);filter:brightness(.93)}
+.k.wide{flex:1.6;font-size:.72rem}
+.k.hit{background:var(--hit);color:var(--on)} .k.near{background:var(--near);color:var(--on)} .k.miss{background:var(--miss);color:var(--on)}
+
+.end{border:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.end h2{margin:0;font-size:1.6rem;letter-spacing:.08em;text-transform:uppercase}
+.mean{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:.92rem}
+.mean span{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;align-self:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;gap:6px;border-top:1px solid var(--edge);padding-top:10px}
+.stats b{display:block;font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stats span{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.end .bar button.main{background:var(--hit);border-color:var(--hit);color:var(--on)}
+.toast{font-size:.82rem;color:var(--muted)}
+
+details{border-top:1px solid var(--edge);padding-top:10px;font-size:.9rem}
+summary{cursor:pointer;font-weight:700}
+details p{color:var(--muted);margin:.5em 0;max-width:65ch}
+.legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:var(--muted)}
+.legend .t{width:30px;font-size:1rem}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="logo" aria-label="Wördli"><b>W</b><b class="o">Ö</b><b>R</b><b>D</b><b>L</b><b>I</b></div>
+      <div class="meta" id="meta">Daily Swiss German word</div>
+    </div>
+    <div class="bar">
+      <select id="archive" aria-label="Pick a puzzle"></select>
+      <button id="practice" type="button">Practice</button>
+    </div>
+  </header>
+
+  <div class="msg" id="msg" role="status"></div>
+  <div class="grid" id="grid"></div>
+
+  <section class="end" id="end" hidden>
+    <h2 id="word"></h2>
+    <div class="mean"><span>Hochdeutsch</span><div id="de"></div><span>English</span><div id="en"></div></div>
+    <p id="sub" style="margin:0"></p>
+    <div class="stats" id="stats"></div>
+    <div class="bar"><button class="main" type="button" id="share">Copy result</button><span class="toast" id="toast"></span></div>
+  </section>
+
+  <div class="kb" id="kb"></div>
+
+  <details>
+    <summary>How to play</summary>
+    <p>Guess the Swiss German word in 6 tries. Every word has 5 letters, and Ä, Ö and Ü each count as one letter with their own key.</p>
+    <div class="legend"><span class="t hit">C</span> right spot <span class="t near">H</span> wrong spot <span class="t miss">X</span> not in the word</div>
+    <p>Swiss German has no official spelling, so any 5 letters count as a guess. The answers use common Zürich-style spellings, like CHIND, LUEGE and ÖPPIS. A new word comes out every day at midnight.</p>
+  </details>
+</div>
+
+<script>
+const WORDS=[
+ ["CHIND","Kind","child"],["CHUEH","Kuh","cow"],["CHILE","Kirche","church"],["HÜSLI","Häuschen","little house"],
+ ["MERCI","danke","thanks"],["STUTZ","Franken; steiler Hang","franc (money); steep slope"],["BATZE","Geld, Batzen","money, a big chunk"],
+ ["MOCKE","Brocken","lump, chunk"],["GRIND","Kopf (salopp)","head (slang)"],["FÜDLI","Hintern","butt"],["LUEGE","schauen","to look"],
+ ["POSTE","einkaufen","to go shopping"],["PLÄRE","weinen","to cry"],["HOCKE","sitzen","to sit"],["STUBE","Wohnzimmer","living room"],
+ ["CHÄMI","Kamin","chimney, fireplace"],["BUEBE","Jungen","boys"],["CHOLE","Kohle; Geld","coal; cash"],["LAPPI","Trottel","idiot"],
+ ["TUBEL","Dummkopf","fool"],["ÖPPER","jemand","somebody"],["ÖPPIS","etwas","something"],["GOMFI","Konfitüre","jam"],
+ ["RÜEBE","Rüben, Karotten","carrots"],["BÖLLE","Zwiebel","onion"],["FINKE","Hausschuhe","slippers"],["GUMPE","springen","to jump"],
+ ["CHALT","kalt","cold"],["CHLII","klein","small"],["GLATT","lustig","funny"],["GÄBIG","praktisch","handy, practical"],
+ ["GHÖRE","hören","to hear"],["CHÖNE","können","can, to be able to"],["WÜSSE","wissen","to know"],["MÄRTE","feilschen","to haggle"],
+ ["RAPPE","Rappen","Swiss cent"],["MATTE","Wiese","meadow"],["SENNE","Senn, Alphirt","alpine dairy farmer"],["JODLE","jodeln","to yodel"],
+ ["HÜÜLE","heulen","to cry, to howl"],["GUGGE","Tüte; Guggenmusik","paper bag; carnival brass band"],["METZG","Metzgerei","butcher's shop"],
+ ["STÄGE","Treppe","stairs"],["GLACE","Speiseeis","ice cream"],["NATEL","Handy","mobile phone"],["ZÜGLE","umziehen","to move house"],
+ ["GOTTI","Patin","godmother"],["GÖTTI","Pate","godfather"],["GROSI","Grossmutter","grandma"],["CHOGE","verdammt (Verstärker)","damn (as in 'damn good')"],
+];
+const ROWS=6,LEN=5,LAUNCH=new Date(2026,9,13),N=WORDS.length;
+const $=id=>document.getElementById(id);
+const LETTERS=/^[a-zäöü]$/;
+
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function perm(c){const r=rng(4242+c*77),a=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const mid=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+const todayNum=()=>Math.max(1,Math.round((mid(new Date())-LAUNCH)/864e5)+1);
+const wordFor=n=>WORDS[perm(Math.floor((n-1)/N))[(n-1)%N]];
+const dateFor=n=>{const d=new Date(LAUNCH);d.setDate(d.getDate()+n-1);return d};
+const split=w=>[...w];
+
+let store={games:{}};
+try{const s=JSON.parse(localStorage.getItem("woerdli:v1"));if(s&&s.games)store=s}catch(e){}
+const persist=()=>{try{localStorage.setItem("woerdli:v1",JSON.stringify(store))}catch(e){}};
+
+function score(guess,ans){
+  const g=split(guess),a=split(ans),res=Array(LEN).fill("miss"),left={};
+  a.forEach((c,i)=>{if(g[i]===c)res[i]="hit";else left[c]=(left[c]||0)+1});
+  g.forEach((c,i)=>{if(res[i]!=="hit"&&left[c]){res[i]="near";left[c]--}});
+  return res;
+}
+
+let game,cur="";
+function startDaily(n){const s=store.games[n]||{guesses:[],done:false,won:false};game={mode:"daily",num:n,entry:wordFor(n),guesses:[...s.guesses],done:s.done,won:s.won};cur="";render(-1)}
+function startPractice(){let e;do{e=WORDS[Math.floor(Math.random()*N)]}while(game&&e===game.entry);game={mode:"practice",num:0,entry:e,guesses:[],done:false,won:false};cur="";$("archive").value="";render(-1)}
+
+function say(t,ms=1800){$("msg").textContent=t;clearTimeout(say.t);if(ms)say.t=setTimeout(()=>$("msg").textContent="",ms)}
+
+function press(k){
+  if(game.done)return;
+  if(k==="ENTER"){
+    if(split(cur).length<LEN){say("Not enough letters");const r=$("grid").children[game.guesses.length];r.classList.remove("shake");void r.offsetWidth;r.classList.add("shake");return}
+    game.guesses.push(cur);const ans=game.entry[0];
+    if(cur===ans){game.done=game.won=true}else if(game.guesses.length>=ROWS)game.done=true;
+    cur="";
+    if(game.mode==="daily"){store.games[game.num]={guesses:game.guesses,done:game.done,won:game.won};persist();buildArchive();$("archive").value=game.num}
+    render(game.guesses.length-1);
+    if(game.won)say(["Wow, uf de erscht Versuech!","Mega guet!","Super gmacht!","Guet gmacht!","Knapp!","Puh, gschafft!"][game.guesses.length-1],0);
+    return;
+  }
+  if(k==="BACK"){cur=split(cur).slice(0,-1).join("");render(-1);return}
+  if(split(cur).length<LEN){cur+=k;render(-1)}
+}
+
+function render(flipRow){
+  const ans=game.entry[0];
+  $("meta").textContent=game.mode==="daily"?`Wördli #${game.num} · ${dateFor(game.num).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}`:"Practice word";
+  let h="";const keys={};
+  for(let r=0;r<ROWS;r++){
+    h+=`<div class="r">`;
+    const g=game.guesses[r];
+    if(g!==undefined){const sc=score(g,ans);split(g).forEach((c,i)=>{h+=`<div class="t ${sc[i]}${r===flipRow?" flip":""}" style="${r===flipRow?`animation-delay:${i*.12}s`:""}">${c}</div>`;const p={hit:3,near:2,miss:1};if(!keys[c]||p[sc[i]]>p[keys[c]])keys[c]=sc[i]})}
+    else if(r===game.guesses.length&&!game.done){const cs=split(cur);for(let i=0;i<LEN;i++)h+=`<div class="t${cs[i]?" f":""}">${cs[i]||""}</div>`}
+    else for(let i=0;i<LEN;i++)h+=`<div class="t"></div>`;
+    h+=`</div>`;
+  }
+  $("grid").innerHTML=h;
+  document.querySelectorAll(".k[data-k]").forEach(b=>{b.className="k"+(b.dataset.wide?" wide":"")+(keys[b.dataset.k]?" "+keys[b.dataset.k]:"")});
+  $("end").hidden=!game.done;$("kb").hidden=game.done;
+  if(game.done)renderEnd();
+}
+
+function renderEnd(){
+  const [w,de,en]=game.entry;$("word").textContent=w;$("de").textContent=de;$("en").textContent=en;$("toast").textContent="";
+  $("sub").textContent=game.won?`Solved in ${game.guesses.length}/${ROWS}.`:"Out of guesses. Morn isch es neus Wördli.";
+  if(game.mode==="daily"){
+    const done=Object.values(store.games).filter(g=>g.done),won=done.filter(g=>g.won).length;let run=0,best=0;const t=todayNum();
+    for(let k=1;k<=t;k++){const g=store.games[k];if(g&&g.won){run++;best=Math.max(best,run)}else if(!(k===t&&!(g&&g.done)))run=0}
+    $("stats").hidden=false;
+    $("stats").innerHTML=[[done.length,"Played"],[done.length?Math.round(won/done.length*100):0,"Win %"],[run,"Streak"],[best,"Best"]].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("");
+    $("share").textContent="Copy result";
+  }else{$("stats").hidden=true;$("share").textContent="Next practice word"}
+}
+
+$("share").addEventListener("click",()=>{
+  if(game.mode!=="daily"){startPractice();return}
+  const em={hit:"🟥",near:"🟨",miss:"⬜"};
+  const txt=`Wördli #${game.num} ${game.won?game.guesses.length:"X"}/${ROWS}\n`+game.guesses.map(g=>score(g,game.entry[0]).map(s=>em[s]).join("")).join("\n");
+  const fail=()=>{$("toast").textContent="";const p=document.createElement("pre");p.textContent=txt;p.style.margin="0";$("toast").appendChild(p);const r=document.createRange();r.selectNodeContents(p);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+  try{navigator.clipboard.writeText(txt).then(()=>$("toast").textContent="Copied. Paste it anywhere.",fail)}catch(e){fail()}
+});
+
+function buildKb(){
+  const rows=[["Q","W","E","R","T","Z","U","I","O","P","Ü"],["A","S","D","F","G","H","J","K","L","Ö","Ä"],["ENTER","Y","X","C","V","B","N","M","BACK"]];
+  $("kb").innerHTML=rows.map(r=>`<div class="kr">${r.map(k=>{const w=k.length>1;return`<button class="k${w?" wide":""}" type="button" data-k="${k}"${w?' data-wide="1"':""} aria-label="${k==="BACK"?"Delete":k==="ENTER"?"Enter":k}">${k==="BACK"?"⌫":k}</button>`}).join("")}</div>`).join("");
+  $("kb").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){press(b.dataset.k);b.blur()}});
+}
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey||e.target.tagName==="SELECT")return;
+  if(e.key==="Enter"){e.preventDefault();press("ENTER")}
+  else if(e.key==="Backspace")press("BACK");
+  else if(LETTERS.test(e.key.toLowerCase()))press(e.key.toUpperCase());
+});
+function buildArchive(){
+  const t=todayNum();let h=`<option value="" disabled>Practice</option>`;
+  for(let n=t;n>=1;n--){const g=store.games[n];const m=g&&g.done?(g.won?" ✓":" ✗"):"";h+=`<option value="${n}">${n===t?"Today":"#"+n} · ${dateFor(n).toLocaleDateString(undefined,{month:"short",day:"numeric"})}${m}</option>`}
+  $("archive").innerHTML=h;
+}
+$("archive").addEventListener("change",e=>{if(e.target.value){startDaily(+e.target.value);e.target.blur()}});
+$("practice").addEventListener("click",e=>{startPractice();e.target.blur()});
+
+buildKb();buildArchive();startDaily(todayNum());$("archive").value=String(todayNum());
+</script>
+</body>
+</html>
